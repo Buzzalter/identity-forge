@@ -1,8 +1,119 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, GeneratedIdentity, SavedProfile } from '@/lib/api';
+import { useState, useCallback, useRef } from 'react';
+import { api, GeneratedIdentity, SavedProfile, GenerationProgress } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-// Hook for generating a new identity
+// Hook for generating identity with progress polling
+export function useGenerateIdentityWithProgress() {
+  const { toast } = useToast();
+  const [progress, setProgress] = useState<GenerationProgress | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  const generate = useCallback(async (description: string): Promise<GeneratedIdentity | null> => {
+    setIsGenerating(true);
+    setProgress({ status: 'pending', step: 'analyzing', progress: 0, message: 'Starting generation...' });
+
+    try {
+      // Try the new async endpoint first
+      const { task_id } = await api.startGeneration(description);
+
+      // Poll for progress
+      return new Promise((resolve, reject) => {
+        pollingRef.current = setInterval(async () => {
+          try {
+            const progressData = await api.getProgress(task_id);
+            setProgress(progressData);
+
+            if (progressData.status === 'completed') {
+              stopPolling();
+              const result = await api.getResult(task_id);
+              setIsGenerating(false);
+              setProgress(null);
+              resolve(result);
+            } else if (progressData.status === 'failed') {
+              stopPolling();
+              setIsGenerating(false);
+              setProgress(null);
+              reject(new Error(progressData.message || 'Generation failed'));
+            }
+          } catch (err) {
+            // If polling fails, continue trying
+            console.warn('Progress polling error:', err);
+          }
+        }, 1000);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          if (pollingRef.current) {
+            stopPolling();
+            setIsGenerating(false);
+            setProgress(null);
+            reject(new Error('Generation timed out'));
+          }
+        }, 300000);
+      });
+    } catch (error) {
+      // Fallback to synchronous generation if async endpoints don't exist
+      console.log('Falling back to synchronous generation');
+      
+      // Simulate progress for synchronous call
+      const simulateProgress = async () => {
+        const steps = [
+          { step: 'analyzing', progress: 10, message: 'Analyzing your description...' },
+          { step: 'bio', progress: 30, message: 'Crafting biography...' },
+          { step: 'image', progress: 50, message: 'Generating portrait image...' },
+          { step: 'voice', progress: 75, message: 'Synthesizing voice sample...' },
+          { step: 'finalizing', progress: 90, message: 'Finalizing identity...' },
+        ];
+
+        for (const step of steps) {
+          setProgress({ status: 'processing', ...step });
+          await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
+        }
+      };
+
+      try {
+        const progressPromise = simulateProgress();
+        const result = await api.generateIdentity(description);
+        await progressPromise;
+        
+        setProgress({ status: 'completed', step: 'finalizing', progress: 100, message: 'Complete!' });
+        await new Promise(r => setTimeout(r, 500));
+        
+        setIsGenerating(false);
+        setProgress(null);
+        return result;
+      } catch (err) {
+        setIsGenerating(false);
+        setProgress(null);
+        throw err;
+      }
+    }
+  }, [stopPolling]);
+
+  const reset = useCallback(() => {
+    stopPolling();
+    setIsGenerating(false);
+    setProgress(null);
+  }, [stopPolling]);
+
+  return {
+    generate,
+    progress,
+    isGenerating,
+    reset,
+  };
+}
+
+// Legacy hook for generating a new identity (kept for compatibility)
 export function useGenerateIdentity() {
   const { toast } = useToast();
 
