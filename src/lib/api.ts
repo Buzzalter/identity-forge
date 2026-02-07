@@ -18,6 +18,17 @@ export interface SavedProfile {
   audio_url: string;
 }
 
+export interface GenerationProgress {
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  step: string;
+  progress: number; // 0-100
+  message: string;
+}
+
+export interface GenerationTask {
+  task_id: string;
+}
+
 export interface ApiError {
   detail: string;
 }
@@ -45,6 +56,29 @@ class ApiService {
     return response.json();
   }
 
+  // Start identity generation and get task ID for polling
+  async startGeneration(description: string): Promise<GenerationTask> {
+    return this.request<GenerationTask>('/generate_identity/start', {
+      method: 'POST',
+      body: JSON.stringify({ description }),
+    });
+  }
+
+  // Poll for generation progress
+  async getProgress(taskId: string): Promise<GenerationProgress> {
+    return this.request<GenerationProgress>(`/generate_identity/progress/${taskId}`, {
+      method: 'GET',
+    });
+  }
+
+  // Get completed generation result
+  async getResult(taskId: string): Promise<GeneratedIdentity> {
+    return this.request<GeneratedIdentity>(`/generate_identity/result/${taskId}`, {
+      method: 'GET',
+    });
+  }
+
+  // Legacy synchronous generation (fallback)
   async generateIdentity(description: string): Promise<GeneratedIdentity> {
     return this.request<GeneratedIdentity>('/generate_identity', {
       method: 'POST',
