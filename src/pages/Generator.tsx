@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, RefreshCw, Save, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Maximize2, RefreshCw, Save, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,6 +31,7 @@ export default function Generator() {
   const [identity, setIdentity] = useState<GeneratedIdentity | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState(false);
 
   const { generate, progress, isGenerating } = useGenerateIdentityWithProgress();
   const regenerateImageMutation = useRegenerateImage();
@@ -166,15 +172,23 @@ export default function Generator() {
                   <div className="flex-1 flex flex-col gap-4 overflow-auto">
                     {/* Image Section */}
                     <div className="space-y-2">
-                      <div className="relative aspect-[4/5] max-h-[280px] bg-muted/30 rounded-lg overflow-hidden border border-border/30">
+                      <div className="relative aspect-[4/5] max-h-[280px] bg-muted/30 rounded-lg overflow-hidden border border-border/30 mx-auto w-fit">
                         {isRegeneratingImage && (
                           <LoadingOverlay text="Regenerating image..." />
                         )}
                         <img
                           src={`data:image/png;base64,${identity.image_base64}`}
                           alt="Generated passport photo"
-                          className="w-full h-full object-cover"
+                          className="h-full object-cover"
                         />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setFullscreenImage(true)}
+                          className="absolute top-2 right-2 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90 border border-border/30"
+                        >
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
                       </div>
                       <Button
                         variant="outline"
@@ -294,6 +308,22 @@ export default function Generator() {
         isSaving={saveMutation.isPending}
         defaultBio={description}
       />
+
+      {/* Fullscreen Image Modal */}
+      <Dialog open={fullscreenImage} onOpenChange={setFullscreenImage}>
+        <DialogContent className="max-w-4xl w-fit p-2 bg-background/95 backdrop-blur-md border-border/50">
+          <DialogClose className="absolute right-3 top-3 z-10 rounded-full bg-background/80 p-2 hover:bg-background border border-border/30">
+            <X className="h-5 w-5" />
+          </DialogClose>
+          {identity && (
+            <img
+              src={`data:image/png;base64,${identity.image_base64}`}
+              alt="Generated passport photo - fullscreen"
+              className="max-h-[85vh] w-auto object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
