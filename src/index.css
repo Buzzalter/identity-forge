@@ -2,107 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Soft Monochrome Design System
-   Theme: Slate, charcoal, and off-white
-   Vibe: Professional, clean, minimal, clinical but user-friendly
+/* Dark Monochrome Design System
+   Theme: Deep charcoal, slate blues, subtle accents
+   Vibe: Professional, sleek, modern, high-end security software
 */
 
 @layer base {
   :root {
-    /* Off-white background - warm and soft */
-    --background: 210 20% 98%;
-    --foreground: 220 20% 15%;
+    /* Dark theme as default */
+    --background: 220 20% 7%;
+    --foreground: 210 15% 92%;
 
-    /* Cards slightly warmer */
-    --card: 210 15% 99%;
-    --card-foreground: 220 20% 15%;
+    /* Cards with subtle elevation */
+    --card: 220 18% 10%;
+    --card-foreground: 210 15% 92%;
 
     /* Popovers/modals */
-    --popover: 210 15% 99%;
-    --popover-foreground: 220 20% 15%;
+    --popover: 220 18% 11%;
+    --popover-foreground: 210 15% 92%;
 
     /* Primary: Slate blue accent */
-    --primary: 215 25% 35%;
-    --primary-foreground: 210 20% 98%;
+    --primary: 215 50% 55%;
+    --primary-foreground: 220 20% 7%;
 
-    /* Secondary: Light slate */
-    --secondary: 210 15% 93%;
-    --secondary-foreground: 220 20% 20%;
+    /* Secondary: Subtle slate */
+    --secondary: 220 15% 15%;
+    --secondary-foreground: 210 15% 85%;
 
     /* Muted surfaces */
-    --muted: 210 12% 92%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 220 15% 13%;
+    --muted-foreground: 215 12% 50%;
 
-    /* Accent */
-    --accent: 210 15% 90%;
-    --accent-foreground: 220 20% 15%;
+    /* Accent - subtle glow */
+    --accent: 220 15% 16%;
+    --accent-foreground: 210 15% 92%;
 
     /* Destructive */
-    --destructive: 0 65% 55%;
+    --destructive: 0 60% 50%;
     --destructive-foreground: 210 20% 98%;
 
     /* Borders and inputs */
-    --border: 210 15% 88%;
-    --input: 210 15% 88%;
-    --ring: 215 25% 35%;
+    --border: 220 15% 18%;
+    --input: 220 15% 14%;
+    --ring: 215 50% 55%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
-    /* Sidebar */
-    --sidebar-background: 220 18% 12%;
-    --sidebar-foreground: 210 15% 85%;
-    --sidebar-primary: 215 30% 60%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 220 15% 18%;
+    /* Sidebar - slightly darker */
+    --sidebar-background: 220 22% 5%;
+    --sidebar-foreground: 210 15% 80%;
+    --sidebar-primary: 215 55% 60%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 18% 12%;
     --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 215 30% 60%;
+    --sidebar-border: 220 15% 14%;
+    --sidebar-ring: 215 55% 60%;
 
     /* Custom tokens */
-    --success: 145 60% 40%;
-    --success-foreground: 210 20% 98%;
-  }
-
-  .dark {
-    --background: 220 18% 10%;
-    --foreground: 210 15% 90%;
-
-    --card: 220 18% 12%;
-    --card-foreground: 210 15% 90%;
-
-    --popover: 220 18% 12%;
-    --popover-foreground: 210 15% 90%;
-
-    --primary: 215 30% 60%;
-    --primary-foreground: 220 18% 10%;
-
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 210 15% 90%;
-
-    --muted: 220 15% 18%;
-    --muted-foreground: 215 15% 55%;
-
-    --accent: 220 15% 20%;
-    --accent-foreground: 210 15% 90%;
-
-    --destructive: 0 60% 45%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 215 30% 60%;
-
-    --sidebar-background: 220 20% 8%;
-    --sidebar-foreground: 210 15% 85%;
-    --sidebar-primary: 215 35% 65%;
-    --sidebar-primary-foreground: 220 18% 10%;
-    --sidebar-accent: 220 15% 14%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 220 15% 15%;
-    --sidebar-ring: 215 35% 65%;
-
-    --success: 145 55% 45%;
-    --success-foreground: 220 18% 10%;
+    --success: 150 60% 45%;
+    --success-foreground: 220 20% 7%;
+    
+    /* Glow effects */
+    --glow-primary: 215 55% 60%;
   }
 }
 
@@ -115,10 +76,48 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Subtle glow effect for cards */
+  .card-glow {
+    box-shadow: 0 0 20px -5px hsl(var(--glow-primary) / 0.1);
+  }
+
+  .card-glow-hover {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .card-glow-hover:hover {
+    box-shadow: 0 0 30px -5px hsl(var(--glow-primary) / 0.15);
+  }
+
+  /* Glass effect */
+  .glass {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
   }
 }
