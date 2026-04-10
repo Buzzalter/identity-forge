@@ -33,8 +33,8 @@ import {
 import { GeneratedIdentity } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin'];
-const ACCENTS = ['American', 'British', 'Australian', 'Native', 'Thick'];
+const LANGUAGES = ['English', 'French', 'German', 'Mandarin', 'Russian', 'Turkish', 'Ukrainian', 'Arabic'];
+const ACCENTS = ['American', 'Australian', 'British', 'Chinese', 'Canadian', 'Indian', 'Korean', 'Portuguese', 'Russian', 'Japanese'];
 
 export default function Generator() {
   const [description, setDescription] = useState('');
