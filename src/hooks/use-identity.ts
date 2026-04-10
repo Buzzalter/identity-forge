@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { api, GeneratedIdentity, SavedProfile, GenerationProgress } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+
+const STORAGE_KEY = 'activeGenerationTask';
 
 export function useGenerateIdentityWithProgress() {
   const { toast } = useToast();
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [resumedResult, setResumedResult] = useState<GeneratedIdentity | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -16,44 +19,85 @@ export function useGenerateIdentityWithProgress() {
     }
   }, []);
 
+  const cleanupStorage = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  const startPolling = useCallback((taskId: string, resolve?: (result: GeneratedIdentity) => void, reject?: (error: Error) => void) => {
+    setIsGenerating(true);
+    setProgress({ status: 'pending', step: 'analyzing', progress: 0, message: 'Resuming generation...' });
+
+    pollingRef.current = setInterval(async () => {
+      try {
+        const progressData = await api.getProgress(taskId);
+        setProgress(progressData);
+
+        if (progressData.status === 'completed') {
+          stopPolling();
+          const result = await api.getResult(taskId);
+          setIsGenerating(false);
+          setProgress(null);
+          cleanupStorage();
+          if (resolve) {
+            resolve(result);
+          } else {
+            setResumedResult(result);
+          }
+        } else if (progressData.status === 'failed') {
+          stopPolling();
+          setIsGenerating(false);
+          setProgress(null);
+          cleanupStorage();
+          const err = new Error(progressData.message || 'Generation failed');
+          if (reject) {
+            reject(err);
+          } else {
+            toast({
+              title: 'Generation Failed',
+              description: progressData.message || 'Generation failed',
+              variant: 'destructive',
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Progress polling error:', err);
+      }
+    }, 1000);
+
+    // Timeout after 5 minutes
+    setTimeout(() => {
+      if (pollingRef.current) {
+        stopPolling();
+        setIsGenerating(false);
+        setProgress(null);
+        cleanupStorage();
+        const err = new Error('Generation timed out');
+        if (reject) {
+          reject(err);
+        }
+      }
+    }, 300000);
+  }, [stopPolling, cleanupStorage, toast]);
+
+  // Resume polling on mount if there's an active task
+  useEffect(() => {
+    const savedTaskId = sessionStorage.getItem(STORAGE_KEY);
+    if (savedTaskId) {
+      startPolling(savedTaskId);
+    }
+    return () => stopPolling();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const generate = useCallback(async (params: { description: string; language: string; accent: string }): Promise<GeneratedIdentity | null> => {
     setIsGenerating(true);
     setProgress({ status: 'pending', step: 'analyzing', progress: 0, message: 'Starting generation...' });
 
     try {
       const { task_id } = await api.startGeneration(params);
+      sessionStorage.setItem(STORAGE_KEY, task_id);
 
       return new Promise((resolve, reject) => {
-        pollingRef.current = setInterval(async () => {
-          try {
-            const progressData = await api.getProgress(task_id);
-            setProgress(progressData);
-
-            if (progressData.status === 'completed') {
-              stopPolling();
-              const result = await api.getResult(task_id);
-              setIsGenerating(false);
-              setProgress(null);
-              resolve(result);
-            } else if (progressData.status === 'failed') {
-              stopPolling();
-              setIsGenerating(false);
-              setProgress(null);
-              reject(new Error(progressData.message || 'Generation failed'));
-            }
-          } catch (err) {
-            console.warn('Progress polling error:', err);
-          }
-        }, 1000);
-
-        setTimeout(() => {
-          if (pollingRef.current) {
-            stopPolling();
-            setIsGenerating(false);
-            setProgress(null);
-            reject(new Error('Generation timed out'));
-          }
-        }, 300000);
+        startPolling(task_id, resolve, reject);
       });
     } catch (error) {
       console.log('Falling back to synchronous generation');
@@ -90,15 +134,16 @@ export function useGenerateIdentityWithProgress() {
         throw err;
       }
     }
-  }, [stopPolling]);
+  }, [startPolling]);
 
   const reset = useCallback(() => {
     stopPolling();
     setIsGenerating(false);
     setProgress(null);
-  }, [stopPolling]);
+    cleanupStorage();
+  }, [stopPolling, cleanupStorage]);
 
-  return { generate, progress, isGenerating, reset };
+  return { generate, progress, isGenerating, reset, resumedResult };
 }
 
 export function useGenerateIdentity() {
