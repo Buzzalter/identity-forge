@@ -9,6 +9,8 @@ export interface GeneratedIdentity {
   bio: string;
   image_prompt: string;
   voice_prompt: string;
+  language: string;
+  accent: string;
 }
 
 export interface SavedProfile {
@@ -16,12 +18,14 @@ export interface SavedProfile {
   bio: string;
   image_url: string;
   audio_url: string;
+  language: string;
+  accent: string;
 }
 
 export interface GenerationProgress {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   step: string;
-  progress: number; // 0-100
+  progress: number;
   message: string;
 }
 
@@ -56,33 +60,29 @@ class ApiService {
     return response.json();
   }
 
-  // Start identity generation and get task ID for polling
-  async startGeneration(description: string): Promise<GenerationTask> {
+  async startGeneration(params: { description: string; language: string; accent: string }): Promise<GenerationTask> {
     return this.request<GenerationTask>('/generate_identity/start', {
       method: 'POST',
-      body: JSON.stringify({ description }),
+      body: JSON.stringify(params),
     });
   }
 
-  // Poll for generation progress
   async getProgress(taskId: string): Promise<GenerationProgress> {
     return this.request<GenerationProgress>(`/generate_identity/progress/${taskId}`, {
       method: 'GET',
     });
   }
 
-  // Get completed generation result
   async getResult(taskId: string): Promise<GeneratedIdentity> {
     return this.request<GeneratedIdentity>(`/generate_identity/result/${taskId}`, {
       method: 'GET',
     });
   }
 
-  // Legacy synchronous generation (fallback)
-  async generateIdentity(description: string): Promise<GeneratedIdentity> {
+  async generateIdentity(params: { description: string; language: string; accent: string }): Promise<GeneratedIdentity> {
     return this.request<GeneratedIdentity>('/generate_identity', {
       method: 'POST',
-      body: JSON.stringify({ description }),
+      body: JSON.stringify(params),
     });
   }
 
@@ -107,7 +107,9 @@ class ApiService {
     name: string,
     bio: string,
     imageBase64: string,
-    audioBase64: string
+    audioBase64: string,
+    language: string,
+    accent: string
   ): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>('/save_profile', {
       method: 'POST',
@@ -116,6 +118,8 @@ class ApiService {
         bio,
         image_base64: imageBase64,
         audio_base64: audioBase64,
+        language,
+        accent,
       }),
     });
   }
