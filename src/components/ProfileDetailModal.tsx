@@ -77,8 +77,9 @@ export function ProfileDetailModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between pr-8">
-          <DialogTitle className="text-xl">{profile.name}</DialogTitle>
+        <DialogHeader className="flex flex-col gap-2 pr-8">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl">{profile.name}</DialogTitle>
           <Button
             variant="outline"
             size="sm"
@@ -93,6 +94,17 @@ export function ProfileDetailModal({
             )}
             {isDownloading ? 'Downloading...' : 'Download'}
           </Button>
+          </div>
+          {(profile.language || profile.accent) && (
+            <div className="flex items-center gap-2">
+              {profile.language && (
+                <Badge variant="secondary" className="text-xs">{profile.language}</Badge>
+              )}
+              {profile.accent && (
+                <Badge variant="outline" className="text-xs">{profile.accent} accent</Badge>
+              )}
+            </div>
+          )}
         </DialogHeader>
         
         <div className="grid md:grid-cols-2 gap-6 py-4">

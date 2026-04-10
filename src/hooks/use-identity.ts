@@ -3,7 +3,6 @@ import { useState, useCallback, useRef } from 'react';
 import { api, GeneratedIdentity, SavedProfile, GenerationProgress } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-// Hook for generating identity with progress polling
 export function useGenerateIdentityWithProgress() {
   const { toast } = useToast();
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
@@ -17,15 +16,13 @@ export function useGenerateIdentityWithProgress() {
     }
   }, []);
 
-  const generate = useCallback(async (description: string): Promise<GeneratedIdentity | null> => {
+  const generate = useCallback(async (params: { description: string; language: string; accent: string }): Promise<GeneratedIdentity | null> => {
     setIsGenerating(true);
     setProgress({ status: 'pending', step: 'analyzing', progress: 0, message: 'Starting generation...' });
 
     try {
-      // Try the new async endpoint first
-      const { task_id } = await api.startGeneration(description);
+      const { task_id } = await api.startGeneration(params);
 
-      // Poll for progress
       return new Promise((resolve, reject) => {
         pollingRef.current = setInterval(async () => {
           try {
@@ -45,12 +42,10 @@ export function useGenerateIdentityWithProgress() {
               reject(new Error(progressData.message || 'Generation failed'));
             }
           } catch (err) {
-            // If polling fails, continue trying
             console.warn('Progress polling error:', err);
           }
         }, 1000);
 
-        // Timeout after 5 minutes
         setTimeout(() => {
           if (pollingRef.current) {
             stopPolling();
@@ -61,10 +56,8 @@ export function useGenerateIdentityWithProgress() {
         }, 300000);
       });
     } catch (error) {
-      // Fallback to synchronous generation if async endpoints don't exist
       console.log('Falling back to synchronous generation');
       
-      // Simulate progress for synchronous call
       const simulateProgress = async () => {
         const steps = [
           { step: 'analyzing', progress: 10, message: 'Analyzing your description...' },
@@ -82,7 +75,7 @@ export function useGenerateIdentityWithProgress() {
 
       try {
         const progressPromise = simulateProgress();
-        const result = await api.generateIdentity(description);
+        const result = await api.generateIdentity(params);
         await progressPromise;
         
         setProgress({ status: 'completed', step: 'finalizing', progress: 100, message: 'Complete!' });
@@ -105,20 +98,14 @@ export function useGenerateIdentityWithProgress() {
     setProgress(null);
   }, [stopPolling]);
 
-  return {
-    generate,
-    progress,
-    isGenerating,
-    reset,
-  };
+  return { generate, progress, isGenerating, reset };
 }
 
-// Legacy hook for generating a new identity (kept for compatibility)
 export function useGenerateIdentity() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: (description: string) => api.generateIdentity(description),
+    mutationFn: (params: { description: string; language: string; accent: string }) => api.generateIdentity(params),
     onError: (error: Error) => {
       toast({
         title: 'Generation Failed',
@@ -129,7 +116,6 @@ export function useGenerateIdentity() {
   });
 }
 
-// Hook for regenerating just the image
 export function useRegenerateImage() {
   const { toast } = useToast();
 
@@ -145,7 +131,6 @@ export function useRegenerateImage() {
   });
 }
 
-// Hook for regenerating just the voice
 export function useRegenerateVoice() {
   const { toast } = useToast();
 
@@ -162,7 +147,6 @@ export function useRegenerateVoice() {
   });
 }
 
-// Hook for saving a profile
 export function useSaveProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,12 +157,16 @@ export function useSaveProfile() {
       bio,
       imageBase64,
       audioBase64,
+      language,
+      accent,
     }: {
       name: string;
       bio: string;
       imageBase64: string;
       audioBase64: string;
-    }) => api.saveProfile(name, bio, imageBase64, audioBase64),
+      language: string;
+      accent: string;
+    }) => api.saveProfile(name, bio, imageBase64, audioBase64, language, accent),
     onSuccess: () => {
       toast({
         title: 'Profile Saved',
@@ -196,7 +184,6 @@ export function useSaveProfile() {
   });
 }
 
-// Hook for fetching all saved profiles
 export function useProfiles() {
   return useQuery<SavedProfile[]>({
     queryKey: ['profiles'],

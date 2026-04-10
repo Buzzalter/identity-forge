@@ -9,6 +9,13 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -26,8 +33,13 @@ import {
 import { GeneratedIdentity } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
+const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin'];
+const ACCENTS = ['American', 'British', 'Australian', 'Native', 'Thick'];
+
 export default function Generator() {
   const [description, setDescription] = useState('');
+  const [language, setLanguage] = useState('English');
+  const [accent, setAccent] = useState('American');
   const [identity, setIdentity] = useState<GeneratedIdentity | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -42,7 +54,7 @@ export default function Generator() {
   const handleGenerate = async () => {
     if (!description.trim()) return;
     try {
-      const result = await generate(description);
+      const result = await generate({ description, language, accent });
       if (result) {
         setIdentity(result);
       }
@@ -81,6 +93,8 @@ export default function Generator() {
       bio: bio || identity.bio,
       imageBase64: identity.image_base64,
       audioBase64: identity.audio_base64,
+      language: identity.language || language,
+      accent: identity.accent || accent,
     });
     setSaveModalOpen(false);
   };
@@ -108,6 +122,40 @@ export default function Generator() {
           <div className="flex flex-col gap-4">
             <Card className="border-border/50 card-glow-hover">
               <CardContent className="p-5">
+                {/* Language & Accent Selectors */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Language
+                    </label>
+                    <Select value={language} onValueChange={setLanguage} disabled={isProcessing}>
+                      <SelectTrigger className="bg-input/50 border-border/50 h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Accent
+                    </label>
+                    <Select value={accent} onValueChange={setAccent} disabled={isProcessing}>
+                      <SelectTrigger className="bg-input/50 border-border/50 h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACCENTS.map((acc) => (
+                          <SelectItem key={acc} value={acc}>{acc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                   <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
