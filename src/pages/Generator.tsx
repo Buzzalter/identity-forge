@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Maximize2, RefreshCw, Save, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,7 +45,14 @@ export default function Generator() {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(false);
 
-  const { generate, progress, isGenerating } = useGenerateIdentityWithProgress();
+  const { generate, progress, isGenerating, resumedResult } = useGenerateIdentityWithProgress();
+
+  // Pick up results from a resumed generation task
+  useEffect(() => {
+    if (resumedResult) {
+      setIdentity(resumedResult);
+    }
+  }, [resumedResult]);
   const regenerateImageMutation = useRegenerateImage();
   const regenerateVoiceMutation = useRegenerateVoice();
   const saveMutation = useSaveProfile();
