@@ -33,13 +33,13 @@ import {
 import { GeneratedIdentity } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-const LANGUAGES = ['English', 'French', 'German', 'Mandarin', 'Russian', 'Turkish', 'Ukrainian', 'Arabic'];
-const ACCENTS = ['American', 'Australian', 'British', 'Chinese', 'Canadian', 'Indian', 'Korean', 'Portuguese', 'Russian', 'Japanese'];
+const LANGUAGES = ['English', 'French', 'German', 'Chinese', 'Russian', 'Turkish', 'Ukrainian', 'Algerian Arabic'];
+const ACCENTS = ['American Accent', 'Australian Accent', 'British Accent', 'Chinese Accent', 'Canadian Accent', 'Indian Accent', 'Korean Accent', 'Portuguese Accent', 'Russian Accent', 'Japanese Accent'];
 
 export default function Generator() {
   const [description, setDescription] = useState('');
   const [language, setLanguage] = useState('English');
-  const [accent, setAccent] = useState('American');
+  const [accent, setAccent] = useState('American Accent');
   const [identity, setIdentity] = useState<GeneratedIdentity | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -53,8 +53,9 @@ export default function Generator() {
 
   const handleGenerate = async () => {
     if (!description.trim()) return;
+    const effectiveAccent = language === 'English' ? accent : '';
     try {
-      const result = await generate({ description, language, accent });
+      const result = await generate({ description, language, accent: effectiveAccent });
       if (result) {
         setIdentity(result);
       }
@@ -94,7 +95,7 @@ export default function Generator() {
       imageBase64: identity.image_base64,
       audioBase64: identity.audio_base64,
       language: identity.language || language,
-      accent: identity.accent || accent,
+      accent: identity.accent || (language === 'English' ? accent : ''),
     });
     setSaveModalOpen(false);
   };
@@ -139,21 +140,23 @@ export default function Generator() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Accent
-                    </label>
-                    <Select value={accent} onValueChange={setAccent} disabled={isProcessing}>
-                      <SelectTrigger className="bg-input/50 border-border/50 h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ACCENTS.map((acc) => (
-                          <SelectItem key={acc} value={acc}>{acc}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {language === 'English' && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Accent
+                      </label>
+                      <Select value={accent} onValueChange={setAccent} disabled={isProcessing}>
+                        <SelectTrigger className="bg-input/50 border-border/50 h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ACCENTS.map((acc) => (
+                            <SelectItem key={acc} value={acc}>{acc}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">

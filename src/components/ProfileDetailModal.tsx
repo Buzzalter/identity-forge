@@ -102,7 +102,7 @@ export function ProfileDetailModal({
                 <Badge variant="secondary" className="text-xs">{profile.language}</Badge>
               )}
               {profile.accent && (
-                <Badge variant="outline" className="text-xs">{profile.accent} accent</Badge>
+                <Badge variant="outline" className="text-xs">{profile.accent}</Badge>
               )}
             </div>
           )}

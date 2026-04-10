@@ -47,7 +47,7 @@ export function ProfileCard({ profile, onClick }: ProfileCardProps) {
         </h3>
         {(profile.language || profile.accent) && (
           <p className="text-primary-foreground/60 text-xs mt-0.5">
-            {[profile.language, profile.accent ? `${profile.accent} accent` : ''].filter(Boolean).join(' · ')}
+            {[profile.language, profile.accent].filter(Boolean).join(' · ')}
           </p>
         )}
         <p className="text-primary-foreground/80 text-sm mt-1 line-clamp-2">
