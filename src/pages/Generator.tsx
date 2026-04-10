@@ -33,13 +33,13 @@ import {
 import { GeneratedIdentity } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-const LANGUAGES = ['English', 'French', 'German', 'Mandarin', 'Russian', 'Turkish', 'Ukrainian', 'Arabic'];
-const ACCENTS = ['American', 'Australian', 'British', 'Chinese', 'Canadian', 'Indian', 'Korean', 'Portuguese', 'Russian', 'Japanese'];
+const LANGUAGES = ['English', 'French', 'German', 'Chinese', 'Russian', 'Turkish', 'Ukrainian', 'Algerian Arabic'];
+const ACCENTS = ['American Accent', 'Australian Accent', 'British Accent', 'Chinese Accent', 'Canadian Accent', 'Indian Accent', 'Korean Accent', 'Portuguese Accent', 'Russian Accent', 'Japanese Accent'];
 
 export default function Generator() {
   const [description, setDescription] = useState('');
   const [language, setLanguage] = useState('English');
-  const [accent, setAccent] = useState('American');
+  const [accent, setAccent] = useState('American Accent');
   const [identity, setIdentity] = useState<GeneratedIdentity | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -53,8 +53,9 @@ export default function Generator() {
 
   const handleGenerate = async () => {
     if (!description.trim()) return;
+    const effectiveAccent = language === 'English' ? accent : '';
     try {
-      const result = await generate({ description, language, accent });
+      const result = await generate({ description, language, accent: effectiveAccent });
       if (result) {
         setIdentity(result);
       }
@@ -94,7 +95,7 @@ export default function Generator() {
       imageBase64: identity.image_base64,
       audioBase64: identity.audio_base64,
       language: identity.language || language,
-      accent: identity.accent || accent,
+      accent: identity.accent || (language === 'English' ? accent : ''),
     });
     setSaveModalOpen(false);
   };
