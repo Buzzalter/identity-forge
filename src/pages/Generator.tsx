@@ -140,21 +140,23 @@ export default function Generator() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Accent
-                    </label>
-                    <Select value={accent} onValueChange={setAccent} disabled={isProcessing}>
-                      <SelectTrigger className="bg-input/50 border-border/50 h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ACCENTS.map((acc) => (
-                          <SelectItem key={acc} value={acc}>{acc}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {language === 'English' && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Accent
+                      </label>
+                      <Select value={accent} onValueChange={setAccent} disabled={isProcessing}>
+                        <SelectTrigger className="bg-input/50 border-border/50 h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ACCENTS.map((acc) => (
+                            <SelectItem key={acc} value={acc}>{acc}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
