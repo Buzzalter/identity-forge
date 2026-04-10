@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Volume2, Download, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { Button } from '@/components/ui/button';
